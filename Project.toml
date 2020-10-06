@@ -1,0 +1,13 @@
+name = "ArtifactUtils"
+uuid = "8b73e784-e7d8-4ea5-973d-377fed4e3bce"
+authors = ["Simeon Schaub <simeondavidschaub99@gmail.com> and contributors"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
