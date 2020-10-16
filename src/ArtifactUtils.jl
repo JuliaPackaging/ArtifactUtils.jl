@@ -18,9 +18,9 @@ end
     function add_artifact!(
         artifacts_toml::String, name::String, tarball_url::String;
         clear=true,
-        platform::Union{Platform,Nothing} = nothing,
-        lazy::Bool = false,
-        force::Bool = false
+        platform::Union{Platform,Nothing}=nothing,
+        lazy::Bool=false,
+        force::Bool=false
     )
 
 Downloads tarball from `tarball_url`, extracts it and adds it as an artifact with name

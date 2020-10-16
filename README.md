@@ -23,7 +23,8 @@ julia> artifact"JuliaMono"
 Downloading artifact: JuliaMono
 curl: (22) The requested URL returned error: 404 Not Found
 Downloading artifact: JuliaMono
-######################################################################## 100.0%#=#=#                                "/home/simeon/.julia/artifacts/888cda53d12753313f13b607a2655448bfc11be5"
+######################################################################## 100.0%#=#=#
+"/home/simeon/.julia/artifacts/888cda53d12753313f13b607a2655448bfc11be5"
 
 julia> run(`ls $ans`);
 JuliaMono-Black.ttf	JuliaMono-Bold.ttf	 JuliaMono-Light.ttf	JuliaMono-RegularLatin.ttf  LICENSE
