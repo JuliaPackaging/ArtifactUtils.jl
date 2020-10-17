@@ -5,11 +5,19 @@
 [![Build Status](https://github.com/simeonschaub/ArtifactUtils.jl/workflows/CI/badge.svg)](https://github.com/simeonschaub/ArtifactUtils.jl/actions)
 [![Coverage](https://codecov.io/gh/simeonschaub/ArtifactUtils.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/simeonschaub/ArtifactUtils.jl)
 
-Provides the function `add_artifact!`, which makes it easy for Julia package developers to
-ship their own tarballs as [Artifacts](https://julialang.github.io/Pkg.jl/dev/artifacts/).
+Provides the function
+[`add_artifact!`](https://simeonschaub.github.io/ArtifactUtils.jl/dev/#ArtifactUtils.add_artifact!-Tuple{String,String,String}),
+which makes it easy for Julia projects to ship their own tarballs as
+[Artifacts](https://julialang.github.io/Pkg.jl/dev/artifacts/).
+
+## Example
+
+This will download the JuliaMono font from GitHub as a tarball and create a corresponding
+`Artifacts.toml` file in the current directory. It allows any Julia code in that directory
+to access these files with the `artifact"..."` string macro.
 
 ```julia
-julia> using ArtifactUtils
+julia> using ArtifactUtils, Pkg.Artifacts # Pkg.Artifacts provides the artifact string macro
 
 julia> add_artifact!(
            "Artifacts.toml",
