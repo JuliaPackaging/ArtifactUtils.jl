@@ -4,6 +4,7 @@ using Pkg.Artifacts
 using Pkg.PlatformEngines
 using Pkg.GitTools
 using SHA
+using Downloads: download
 
 export add_artifact!
 
