@@ -46,7 +46,7 @@ function add_artifact!(
     clear=true,
     options...,
 )
-    probe_platform_engines!()
+    @static isdefined(PlatformEngines, :probe_platform_engines!) && probe_platform_engines!()
 
     tarball_path = download(tarball_url)
     sha256 = sha256sum(tarball_path)
