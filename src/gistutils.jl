@@ -72,7 +72,6 @@ function git_empty_history(git_dir)
     git(`checkout $branch`)
     git(`reset --hard __tmp__`)
     return
-
 end
 
 """
