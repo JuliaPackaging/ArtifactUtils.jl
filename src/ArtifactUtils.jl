@@ -78,9 +78,9 @@ function add_artifact!(
 end
 
 """
-    artifact_from_directory(source) -> artifact::SHA1
+    artifact_from_directory(source) -> artifact_id::SHA1
 
-Create an artifact from the `source` directory and return the `artifact` hash.
+Create an artifact from the `source` directory and return the `artifact_id`.
 """
 artifact_from_directory(source) =
     create_artifact() do artifact_dir
@@ -88,7 +88,7 @@ artifact_from_directory(source) =
     end
 
 struct GistUploadResult
-    artifact::SHA1
+    artifact_id::SHA1
     filename::String
     localpath::Union{String,Nothing}
     url::String
@@ -98,16 +98,16 @@ end
 
 """
     upload_to_gist(
-        artifact::SHA1,
+        artifact_id::SHA1,
         [tarball];
         private::Bool = true,
         archive_artifact = (),
         # Following options are aviailable only when `tarball` is not specified:
-        name::AbstractString = "\$artifact.tar.gz",
+        name::AbstractString = "\$artifact_id.tar.gz",
         extension::AbstractString = ".tar.gz",
     ) -> gist
 
-Create an `artifact` archive at path `tarball` (or in a temporary location) and upload it to
+Create an artifact archive at path `tarball` (or in a temporary location) and upload it to
 gist. The returned value `gist` can be passed to `add_artifact!`.
 
 # Extended help
@@ -131,17 +131,17 @@ add it to `"Artifact.toml"` with the name `"name"`.
 function upload_to_gist end
 
 function upload_to_gist(
-    artifact::SHA1,
+    artifact_id::SHA1,
     tarball::AbstractString;
     private::Bool = true,
     archive_artifact = (),
 )
     mkpath(dirname(tarball))
-    (@__MODULE__).archive_artifact(artifact, tarball; archive_artifact...)
+    (@__MODULE__).archive_artifact(artifact_id, tarball; archive_artifact...)
     sha256 = sha256sum(tarball)
     url = gist_from_file(tarball; private = private)
     return GistUploadResult(
-        artifact,
+        artifact_id,
         basename(tarball),
         abspath(tarball),
         url,
@@ -151,7 +151,7 @@ function upload_to_gist(
 end
 
 function upload_to_gist(
-    artifact::SHA1;
+    artifact_id::SHA1;
     name::Union{AbstractString,Nothing} = nothing,
     extension::Union{AbstractString,Nothing} = nothing,
     options...,
@@ -166,13 +166,13 @@ function upload_to_gist(
     end
 
     tarball = if name === nothing
-        string(artifact, something(extension, ".tar.gz"))
+        string(artifact_id, something(extension, ".tar.gz"))
     else
         name
     end
 
     return mktempdir() do dir
-        upload_to_gist(artifact, joinpath(dir, tarball); options...)
+        upload_to_gist(artifact_id, joinpath(dir, tarball); options...)
     end
 end
 
@@ -185,7 +185,7 @@ function add_artifact!(
     bind_artifact!(
         artifacts_toml,
         name,
-        gist.artifact;
+        gist.artifact_id;
         download_info = [(gist.url, gist.sha256)],
         options...,
     )
@@ -200,7 +200,7 @@ function print_artifact_entry(
 )
     dict = Dict(
         name => Dict(
-            "git-tree-sha1" => string(gist.artifact),
+            "git-tree-sha1" => string(gist.artifact_id),
             "download" => [Dict("url" => gist.url, "sha256" => gist.sha256)],
         ),
     )
@@ -209,7 +209,7 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", gist::GistUploadResult)
     print(io, upload_to_gist, "(")
-    show(io, gist.artifact)
+    show(io, gist.artifact_id)
     if !gist.private
         print(io, "; private = false")
     end

@@ -53,10 +53,10 @@ julia> tempdir = mktempdir();
 
 julia> write(joinpath(tempdir, "file"), "hello");
 
-julia> artifact = artifact_from_directory(tempdir)
+julia> artifact_id = artifact_from_directory(tempdir)
 SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3")
 
-julia> gist = upload_to_gist(artifact)
+julia> gist = upload_to_gist(artifact_id)
 - Creating gist...
 ✓ Created gist
 Cloning into '.'...
