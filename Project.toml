@@ -12,6 +12,7 @@ TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 gh_cli_jll = "5d31d589-30fb-542f-b82d-10325e863e38"
 
 [compat]
+HTTP = "0.9"
 gh_cli_jll = "2"
 julia = "1.3"
 
