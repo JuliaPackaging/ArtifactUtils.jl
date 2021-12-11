@@ -81,6 +81,11 @@ end
         mktempdir() do git_dir
             git(args) = run(`git --no-pager -C $git_dir $args`)
             git(`init`)
+
+            # Setup repository-local user name and email so that it works on CI
+            git(`config user.email "test@example.com"`)
+            git(`config user.name "tester"`)
+
             git(`checkout -b new-branch`)
             write(joinpath(git_dir, "file-1"), "content")
             git(`add file-1`)
