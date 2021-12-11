@@ -6,7 +6,7 @@ using Pkg.GitTools
 using SHA
 using Downloads: download
 
-export add_artifact!
+export add_artifact!, artifact_from_directory
 
 function sha256sum(tarball_path)
     return open(tarball_path, "r") do io
@@ -69,5 +69,15 @@ function add_artifact!(
 
     return git_tree_sha1
 end
+
+"""
+    artifact_from_directory(source) -> artifact::SHA1
+
+Create an artifact from the `source` directory and return the `artifact` hash.
+"""
+artifact_from_directory(source) =
+    create_artifact() do artifact_dir
+        cp(source, artifact_dir; force = true, follow_symlinks = true)
+    end
 
 end
