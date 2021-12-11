@@ -101,7 +101,7 @@ end
         artifact_id::SHA1,
         [tarball];
         private::Bool = true,
-        archive_artifact = (),
+        honor_overrides = false,
         # Following options are aviailable only when `tarball` is not specified:
         name::AbstractString = "\$artifact_id.tar.gz",
         extension::AbstractString = ".tar.gz",
@@ -123,10 +123,10 @@ add it to `"Artifact.toml"` with the name `"name"`.
 
 ## Keyword Arguments
 - `private`: if `true`, upload the archive to a private gist
-- `archive_artifact`: keyword arguments passed to `Pkg.Artifacts.archive_artifact`
 - `name`: name of the archive file, including file extension
 - `extension`: file extension of the tarball. It can be used for specifying the compression
   method.
+- `honor_overrides`: see `Pkg.Artifacts.archive_artifact`
 """
 function upload_to_gist end
 
@@ -134,10 +134,10 @@ function upload_to_gist(
     artifact_id::SHA1,
     tarball::AbstractString;
     private::Bool = true,
-    archive_artifact = (),
+    archive_options...,
 )
     mkpath(dirname(tarball))
-    (@__MODULE__).archive_artifact(artifact_id, tarball; archive_artifact...)
+    archive_artifact(artifact_id, tarball; archive_options...)
     sha256 = sha256sum(tarball)
     url = gist_from_file(tarball; private = private)
     return GistUploadResult(
