@@ -84,7 +84,9 @@ Create an artifact from the `source` directory and return the `artifact_id`.
 """
 artifact_from_directory(source) =
     create_artifact() do artifact_dir
+        @show readdir(source)
         cp(source, artifact_dir; force = true, follow_symlinks = true)
+        @show readdir(artifact_dir)
     end
 
 struct GistUploadResult
