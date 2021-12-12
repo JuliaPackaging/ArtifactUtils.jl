@@ -71,13 +71,15 @@ end
 
 @testset "artifact_from_directory" begin
     mktempdir() do tempdir
-        file = joinpath(tempdir, "file")
-        write(file, "hello")
+        file = joinpath(tempdir, "hello.txt")
+        open(file, write = true) do io
+            println(io, "Hello, world.")
+        end
         chmod(file, 0o644)
         @test SHA1(Pkg.GitTools.tree_hash(tempdir)) ==
-              SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3")
+              SHA1("0a890bd10328d68f6d85efd2535e3a4c588ee8e6")
         @test artifact_from_directory(tempdir) ==
-              SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3")
+              SHA1("0a890bd10328d68f6d85efd2535e3a4c588ee8e6")
     end
 end
 
