@@ -70,7 +70,9 @@ end
 
 @testset "artifact_from_directory" begin
     mktempdir() do tempdir
-        write(joinpath(tempdir, "file"), "hello")
+        file = joinpath(tempdir, "file")
+        write(file, "hello")
+        chmod(file, 0o644)
         @test artifact_from_directory(tempdir) ==
               SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3")
     end
