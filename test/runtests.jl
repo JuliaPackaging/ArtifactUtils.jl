@@ -68,11 +68,15 @@ end
     @test occursin("url =", str)
 end
 
+tree_hash(root::AbstractString; kwargs...) =
+    bytes2hex(Pkg.GitTools.tree_hash(root; kwargs...))
+
 @testset "artifact_from_directory" begin
     mktempdir() do tempdir
         file = joinpath(tempdir, "file")
         write(file, "hello")
         chmod(file, 0o644)
+        @test tree_hash(tempdir) == "538e83d637ab07ada6d841aa2454e0d5af4e52b3"
         @test artifact_from_directory(tempdir) ==
               SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3")
     end
