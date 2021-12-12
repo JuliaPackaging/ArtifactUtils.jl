@@ -82,6 +82,10 @@ end
     artifact_from_directory(source) -> artifact_id::SHA1
 
 Create an artifact from the `source` directory and return the `artifact_id`.
+
+!!! note
+    Known bug: In Windows, permission of files in `source` are ignored due to a limitation
+    of `Base.cp`.
 """
 artifact_from_directory(source) =
     create_artifact() do artifact_dir

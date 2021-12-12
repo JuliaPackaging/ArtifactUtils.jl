@@ -78,10 +78,17 @@ end
         chmod(file, 0o644)
         @test SHA1(Pkg.GitTools.tree_hash(tempdir)) ==
               SHA1("0a890bd10328d68f6d85efd2535e3a4c588ee8e6")
-        @test artifact_from_directory(tempdir) ==
-              SHA1("0a890bd10328d68f6d85efd2535e3a4c588ee8e6")
+        if Sys.iswindows()
+            @test artifact_from_directory(tempdir) ==
+                SHA1("952cfce0fb589c02736482fa75f9f9bb492242f8")
+        else
+            @test artifact_from_directory(tempdir) ==
+                SHA1("0a890bd10328d68f6d85efd2535e3a4c588ee8e6")
+        end
     end
 end
+# Hashes taken from:
+# https://github.com/JuliaLang/Pkg.jl/blob/89286eac216164c43cc996f1f31a9fa1f1dacf87/test/new.jl#L2553-L2572
 
 @testset "git_empty_history" begin
     mktempdir() do git_dir
