@@ -41,7 +41,7 @@ function with_new_gist(f; private::Bool = true)
         @async response[] = HTTP.head(repo_http; redirect = false)
 
         mktempdir() do git_dir
-            git(args) = run(`git -C $git_dir $args`)
+            git(args) = run(`$(Git.git()) -C $git_dir $args`)
             git(`clone $git_url .`)
             git_empty_history(git_dir)
             f(git_dir)
@@ -60,7 +60,7 @@ end
 Empty the history of the current branch. Create an empty commit to start fresh.
 """
 function git_empty_history(git_dir)
-    git(args) = run(`git -C $git_dir $args`)
+    git(args) = run(`$(Git.git()) -C $git_dir $args`)
     branch = strip(read(`git -C $git_dir rev-parse --abbrev-ref HEAD`, String))
     git(`checkout --orphan=__tmp__`)
     for path in readdir(git_dir; join = true)

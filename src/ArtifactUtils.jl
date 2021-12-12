@@ -1,5 +1,6 @@
 module ArtifactUtils
 
+import Git
 import HTTP
 import TOML
 import gh_cli_jll

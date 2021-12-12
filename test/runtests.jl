@@ -3,6 +3,7 @@ using Base: SHA1
 using Test
 using TOML
 import Pkg
+import Git
 
 function _artifact(name, loc)
     eval(Expr(:macrocall, Symbol("@artifact_str"), LineNumberNode(1, Symbol(loc)), name))
@@ -83,30 +84,27 @@ tree_hash(root::AbstractString; kwargs...) =
 end
 
 @testset "git_empty_history" begin
-    if success(`git --help`)
-        mktempdir() do git_dir
-            git(args) = run(`git --no-pager -C $git_dir $args`)
-            git(`init`)
+    mktempdir() do git_dir
+        git(args) = run(`$(Git.git()) --no-pager -C $git_dir $args`)
+        git(`init`)
 
-            # Setup repository-local user name and email so that it works on CI
-            git(`config user.email "test@example.com"`)
-            git(`config user.name "tester"`)
+        # Setup repository-local user name and email so that it works on CI
+        git(`config user.email "test@example.com"`)
+        git(`config user.name "tester"`)
 
-            git(`checkout -b new-branch`)
-            write(joinpath(git_dir, "file-1"), "content")
-            git(`add file-1`)
-            git(`commit --message "Add file-1"`)
-            history = strip(read(`git -C $git_dir --no-pager log`, String))
-            @test occursin("Add file-1", history)
+        git(`checkout -b new-branch`)
+        write(joinpath(git_dir, "file-1"), "content")
+        git(`add file-1`)
+        git(`commit --message "Add file-1"`)
+        history = strip(read(`git -C $git_dir --no-pager log`, String))
+        @test occursin("Add file-1", history)
 
-            ArtifactUtils.git_empty_history(git_dir)
-            @test !isfile("file-1")
-            branch = strip(
-                read(`git -C $git_dir --no-pager rev-parse --abbrev-ref HEAD`, String),
-            )
-            @test branch == "new-branch"
-            history = strip(read(`git -C $git_dir --no-pager log`, String))
-            @test !occursin("Add file-1", history)
-        end
+        ArtifactUtils.git_empty_history(git_dir)
+        @test !isfile("file-1")
+        branch =
+            strip(read(`git -C $git_dir --no-pager rev-parse --abbrev-ref HEAD`, String))
+        @test branch == "new-branch"
+        history = strip(read(`git -C $git_dir --no-pager log`, String))
+        @test !occursin("Add file-1", history)
     end
 end
