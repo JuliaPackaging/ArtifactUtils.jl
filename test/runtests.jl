@@ -79,13 +79,13 @@ end
         @test SHA1(Pkg.GitTools.tree_hash(tempdir)) ==
               SHA1("0a890bd10328d68f6d85efd2535e3a4c588ee8e6")
         @test artifact_from_directory(tempdir) ==
-            SHA1("0a890bd10328d68f6d85efd2535e3a4c588ee8e6")
+              SHA1("0a890bd10328d68f6d85efd2535e3a4c588ee8e6")
 
         chmod(file, 0o744) # user x bit matters
         @test SHA1(Pkg.GitTools.tree_hash(tempdir)) ==
               SHA1("952cfce0fb589c02736482fa75f9f9bb492242f8")
         @test artifact_from_directory(tempdir) ==
-            SHA1("952cfce0fb589c02736482fa75f9f9bb492242f8")
+              SHA1("952cfce0fb589c02736482fa75f9f9bb492242f8")
     end
 end
 # Hashes taken from:
