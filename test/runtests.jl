@@ -125,6 +125,14 @@ end
         end
         @test read(path, String) == "Hello, world.\n"
     end
+    mktempdir() do tempdir
+        path = joinpath(tempdir, "hello.txt")
+        err = ErrorException("error from callback")
+        @test_throws err ArtifactUtils.open_atomic_write(path) do io
+            throw(err)
+        end
+        @test readdir(tempdir) == []
+    end
 end
 
 @testset "threaded_progress_foreach" begin

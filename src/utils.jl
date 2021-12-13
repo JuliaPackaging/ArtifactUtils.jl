@@ -7,15 +7,13 @@ an atomic version of `open(f, path; write = true)`.
 """
 function open_atomic_write(f, path)
     # Resolve symlink so that we don't replace a symbolic link with a regular file
-    path = realpath(path)
-    tmppath, tmpio = mktemp(dirname(path); cleanup = false)
-    y = try
-        f(tmpio)
-    finally
-        close(tmpio)
+    let path = isfile(path) ? realpath(path) : abspath(path)
+        mktemp(dirname(path)) do tmppath, tmpio
+            y = f(tmpio)
+            mv(tmppath, path; force = true)  # atomically replace
+            return y
+        end
     end
-    mv(tmppath, path; force = true)  # atomically replace
-    return y
 end
 
 """
