@@ -82,15 +82,25 @@ end
     artifact_from_directory(source) -> artifact_id::SHA1
 
 Create an artifact from the `source` directory and return the `artifact_id`.
-
-!!! note
-    Known bug: In Windows, permission of files in `source` are ignored due to a limitation
-    of `Base.cp`.
 """
 artifact_from_directory(source) =
     create_artifact() do artifact_dir
         cp(source, artifact_dir; force = true, follow_symlinks = true)
+        # Manually copy the executable bit in Windows:
+        # https://github.com/simeonschaub/ArtifactUtils.jl/pull/8#discussion_r767210865
+        Sys.iswindows() && copy_mode(source, artifact_dir)
     end
+
+# https://github.com/JuliaIO/Tar.jl/blob/6a946029685639b69ce5a7cc4c4a6c0e6c6b2697/src/extract.jl#L145-L153
+function copy_mode(src::String, dst::String)
+    chmod(dst, filemode(src))
+    isdir(dst) || return
+    for name in readdir(dst)
+        sub_src = joinpath(src, name)
+        sub_dst = joinpath(dst, name)
+        copy_mode(sub_src, sub_dst)
+    end
+end
 
 struct GistUploadResult
     artifact_id::SHA1
