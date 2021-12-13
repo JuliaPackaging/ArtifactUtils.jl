@@ -3,7 +3,7 @@
 
 Evaluate `y = f(io::IO)`, atomically replace the file with a new file with the
 content of `io` (in well-behaving file systems) and then return `y`; i.e., it's
-and atomic version of `open(f, path; write = true)`.
+an atomic version of `open(f, path; write = true)`.
 """
 function open_atomic_write(f, path)
     # Resolve symlink so that we don't replace a symbolic link with a regular file
