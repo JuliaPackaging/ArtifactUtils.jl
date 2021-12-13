@@ -262,7 +262,7 @@ function upload_all_to_gist!(
     end
 
     open_atomic_write(artifacts_toml) do io
-        TOML.print(io, artifacts)
+        TOML.print(io, artifacts; sorted = true)
     end
     return
 end
@@ -295,7 +295,7 @@ function print_artifact_entry(
             "download" => [Dict("url" => gist.url, "sha256" => gist.sha256)],
         ),
     )
-    TOML.print(io, dict)
+    TOML.print(io, dict; sorted = true)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", gist::GistUploadResult)
