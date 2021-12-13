@@ -10,7 +10,16 @@ function open_atomic_write(f, path)
     let path = isfile(path) ? realpath(path) : abspath(path)
         mktemp(dirname(path)) do tmppath, tmpio
             y = f(tmpio)
-            mv(tmppath, path; force = true)  # atomically replace
+            close(tmpio)
+            try
+                mv(tmppath, path; force = true)  # atomically replace
+            catch err
+                if !(isfile(tmppath) && read(path) == read(tmppath))
+                    rethrow()
+                end
+                # if the file has the desired content, let's rely on the
+                # workarounds for robust deletion in `mktemp`.
+            end
             return y
         end
     end
