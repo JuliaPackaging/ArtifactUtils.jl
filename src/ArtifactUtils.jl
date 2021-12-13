@@ -91,10 +91,23 @@ artifact_from_directory(source) =
         Sys.iswindows() && copy_mode(source, artifact_dir)
     end
 
-# https://github.com/JuliaIO/Tar.jl/blob/6a946029685639b69ce5a7cc4c4a6c0e6c6b2697/src/extract.jl#L145-L153
-function copy_mode(src::String, dst::String)
-    chmod(dst, filemode(src))
-    isdir(dst) || return
+"""
+    copy_mode(src, dst)
+
+Copy mode of `src` to `dst` recursively in a way compatible to how `Pkg` (Git)
+compute the tree hash.
+
+See `Pkg.GitTools.gitmode` comment for how the file mode is handled specially in Windows:
+https://github.com/JuliaLang/Pkg.jl/blob/247a4062bfde19d93bdcbaccc9737df496fd0c2b/src/GitTools.jl#L189-L192
+
+`copy_mode` is based on:
+https://github.com/JuliaIO/Tar.jl/blob/6a946029685639b69ce5a7cc4c4a6c0e6c6b2697/src/extract.jl#L145-L153
+"""
+function copy_mode(src, dst)
+    if !isdir(dst)
+        chmod(dst, UInt(GitTools.gitmode(string(src))))
+        return
+    end
     for name in readdir(dst)
         sub_src = joinpath(src, name)
         sub_dst = joinpath(dst, name)
