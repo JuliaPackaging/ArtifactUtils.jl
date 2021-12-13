@@ -7,12 +7,14 @@ import gh_cli_jll
 using Pkg.Artifacts
 using Pkg.PlatformEngines
 using Pkg.GitTools
+using ProgressLogging: @logprogress, @withprogress
 using Base: SHA1
 using SHA
 using Downloads: download
 
-export add_artifact!, artifact_from_directory, upload_to_gist
+export add_artifact!, artifact_from_directory, upload_to_gist, upload_all_to_gist!
 
+include("utils.jl")
 include("gistutils.jl")
 
 function sha256sum(tarball_path)
@@ -202,6 +204,67 @@ function upload_to_gist(
     return mktempdir() do dir
         upload_to_gist(artifact_id, joinpath(dir, tarball); options...)
     end
+end
+
+"""
+    upload_all_to_gist!(
+        artifacts_toml::AbstractString;
+        extension::AbstractString = ".tar.gz",
+        private::Bool = true,
+        append::Bool = false,
+    )
+
+Upload all artifact entries in `artifacts_toml` without the `.download.url` property (by
+default) and then update `artifacts_toml`.
+
+# Keyword Arguments
+- `extension`: file extension for of artifact archive files
+- `private`: if `true`, upload the archives to a private gist
+- `append`: if `true`, upload the archives even if the `download` entries exist
+"""
+function upload_all_to_gist!(
+    artifacts_toml::AbstractString;
+    append::Bool = false,
+    extension::AbstractString = ".tar.gz",
+    private::Bool = true,
+)
+    artifacts = TOML.parsefile(artifacts_toml)
+
+    uploads = @NamedTuple{name::String, git_tree_sha1::SHA1}[]
+    for (name, art) in pairs(artifacts)
+        # Allocating the "download" vector here as we'll need it.
+        download = get!(art, "download", [])
+        if append || isempty(download)
+            push!(uploads, (; name, git_tree_sha1 = SHA1(art["git-tree-sha1"])))
+        end
+    end
+    isempty(uploads) && return
+
+    mktempdir() do tmpdir
+        threaded_progress_foreach(uploads; progresstitle = "Archiving artifacts") do up
+            tarball_path = joinpath(tmpdir, up.name * extension)
+            archive_artifact(up.git_tree_sha1, tarball_path)
+            sha256 = sha256sum(tarball_path)
+            push!(artifacts[up.name]["download"], Dict{String,Any}("sha256" => sha256))
+        end
+        @info "Uploading archive to gist"
+        repo_http = with_new_gist(; private) do git_dir
+            for up in uploads
+                filename = up.name * extension
+                cp(joinpath(tmpdir, filename), joinpath(git_dir, filename))
+            end
+        end
+        @info "Archives uploaded to `$repo_http`"
+        for up in uploads
+            artifacts[up.name]["download"][end]["url"] =
+                rstrip(repo_http, '/') * "/raw/" * up.name * extension
+        end
+    end
+
+    open_atomic_write(artifacts_toml) do io
+        TOML.print(io, artifacts)
+    end
+    return
 end
 
 function add_artifact!(

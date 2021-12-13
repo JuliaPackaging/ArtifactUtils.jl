@@ -116,3 +116,23 @@ end
         @test !occursin("Add file-1", history)
     end
 end
+
+@testset "open_atomic_write" begin
+    mktemp() do path, io
+        close(io)
+        ArtifactUtils.open_atomic_write(path) do io
+            println(io, "Hello, world.")
+        end
+        @test read(path, String) == "Hello, world.\n"
+    end
+end
+
+@testset "threaded_progress_foreach" begin
+    @testset for n in [10, 1000]
+        hits = zeros(Int, n)
+        ArtifactUtils.threaded_progress_foreach(eachindex(hits)) do i
+            hits[i] += 1
+        end
+        @test all(==(1), hits)
+    end
+end
