@@ -116,3 +116,31 @@ end
         @test !occursin("Add file-1", history)
     end
 end
+
+@testset "open_atomic_write" begin
+    mktemp() do path, io
+        close(io)
+        ArtifactUtils.open_atomic_write(path) do io
+            println(io, "Hello, world.")
+        end
+        @test read(path, String) == "Hello, world.\n"
+    end
+    mktempdir() do tempdir
+        path = joinpath(tempdir, "hello.txt")
+        err = ErrorException("error from callback")
+        @test_throws err ArtifactUtils.open_atomic_write(path) do io
+            throw(err)
+        end
+        @test readdir(tempdir) == []
+    end
+end
+
+@testset "threaded_progress_foreach" begin
+    @testset for n in [10, 1000]
+        hits = zeros(Int, n)
+        ArtifactUtils.threaded_progress_foreach(eachindex(hits)) do i
+            hits[i] += 1
+        end
+        @test all(==(1), hits)
+    end
+end
