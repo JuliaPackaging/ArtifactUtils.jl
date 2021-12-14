@@ -5,11 +5,10 @@ CurrentModule = ArtifactUtils
 # ArtifactUtils
 
 ```@index
-add_artifact!
-artifact_from_directory
-upload_to_gist
+Pages = ["index.md"]
 ```
 
 ```@autodocs
 Modules = [ArtifactUtils]
+Private = false
 ```
