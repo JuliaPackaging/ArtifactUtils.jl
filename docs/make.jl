@@ -13,6 +13,7 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        hide("Internals" => "internals.md"),
     ],
 )
 
