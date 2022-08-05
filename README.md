@@ -21,22 +21,23 @@ to access these files with the `artifact"..."` string macro.
 julia> using ArtifactUtils, Artifacts # Artifacts provides the artifact string macro
 
 julia> add_artifact!(
-           "Artifacts.toml",
-           "JuliaMono",
-           "https://github.com/cormullion/juliamono/releases/download/v0.030/JuliaMono.tar.gz",
-           force=true,
-       )
+                     "Artifacts.toml",
+                     "JuliaMono",
+                     "https://github.com/cormullion/juliamono/releases/download/v0.030/JuliaMono.tar.gz",
+                     force=true,
+                    )
 SHA1("6c460cf2eccecd24499618112adbbe7e403fa1ee")
 
-julia> import Pkg; Pkg.instantiate() # to install the artifact
+julia> import Pkg; Pkg.ensure_artifact_installed("JuliaMono", "Artifacts.toml")
   Downloaded artifact: JuliaMono
   Downloaded artifact: JuliaMono
+"/home/simeon/.julia/artifacts/6c460cf2eccecd24499618112adbbe7e403fa1ee"
 
 julia> artifact"JuliaMono"
 "/home/simeon/.julia/artifacts/6c460cf2eccecd24499618112adbbe7e403fa1ee"
 
 julia> run(`ls $ans`);
-JuliaMono-Black.ttf	JuliaMono-Bold.ttf	 JuliaMono-Light.ttf	JuliaMono-RegularLatin.ttf  LICENSE
+JuliaMono-Black.ttf	 JuliaMono-Bold.ttf	  JuliaMono-Light.ttf	JuliaMono-RegularLatin.ttf  LICENSE
 JuliaMono-BoldLatin.ttf  JuliaMono-ExtraBold.ttf  JuliaMono-Medium.ttf	JuliaMono-Regular.ttf
 ```
 
