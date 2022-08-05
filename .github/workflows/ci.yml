@@ -1,76 +1,69 @@
 name: CI
 on:
   - push
-    #- pull_request
+  - pull_request
   - release
 jobs:
-  foo:
-    runs-on: ubuntu-latest
+  test:
+    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        version:
+          - '1.6'
+          - '1'
+          - 'nightly'
+        os:
+          - ubuntu-latest
+          - macOS-latest
+          - windows-latest
+        arch:
+          - x64
+      fail-fast: false
     steps:
-      - run: |
-          echo bar > foo
-          export out=$(gh gist create foo)
-          gh gist delete $(echo $out | tail -n1)
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+      - uses: actions/cache@v1
+        env:
+          cache-name: cache-artifacts
+        with:
+          path: ~/.julia/artifacts
+          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-test-${{ env.cache-name }}-
+            ${{ runner.os }}-test-
+            ${{ runner.os }}-
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-runtest@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GIST_TESTING_TOKEN }}
-  #  test:
-  #    name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }}
-  #    runs-on: ${{ matrix.os }}
-  #    strategy:
-  #      matrix:
-  #        version:
-  #          - '1.6'
-  #          - '1'
-  #          - 'nightly'
-  #        os:
-  #          - ubuntu-latest
-  #          - macOS-latest
-  #          - windows-latest
-  #        arch:
-  #          - x64
-  #      fail-fast: false
-  #    steps:
-  #      - uses: actions/checkout@v2
-  #      - uses: julia-actions/setup-julia@v1
-  #        with:
-  #          version: ${{ matrix.version }}
-  #          arch: ${{ matrix.arch }}
-  #      - uses: actions/cache@v1
-  #        env:
-  #          cache-name: cache-artifacts
-  #        with:
-  #          path: ~/.julia/artifacts
-  #          key: ${{ runner.os }}-test-${{ env.cache-name }}-${{ hashFiles('**/Project.toml') }}
-  #          restore-keys: |
-  #            ${{ runner.os }}-test-${{ env.cache-name }}-
-  #            ${{ runner.os }}-test-
-  #            ${{ runner.os }}-
-  #      - uses: julia-actions/julia-buildpkg@latest
-  #      - uses: julia-actions/julia-runtest@latest
-  #      - uses: julia-actions/julia-processcoverage@v1
-  #      - uses: codecov/codecov-action@v1
-  #        with:
-  #          file: lcov.info
-  #        env:
-  #          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-  #    # don't run ci twice on my own PRs
-  #    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
-  #
-  #  docs:
-  #    name: Documentation
-  #    runs-on: ubuntu-latest
-  #    steps:
-  #      - uses: actions/checkout@v2
-  #      - uses: julia-actions/setup-julia@v1
-  #        with:
-  #          version: '1'
-  #      - run: |
-  #          julia --project=docs -e '
-  #            using Pkg
-  #            Pkg.instantiate()'
-  #      - run: julia --project=docs docs/make.jl
-  #        env:
-  #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
-  #    # don't run ci twice on my own PRs
-  #    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      - uses: julia-actions/julia-processcoverage@v1
+      - uses: codecov/codecov-action@v1
+        with:
+          file: lcov.info
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    # don't run ci twice on my own PRs
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1'
+      - run: |
+          julia --project=docs -e '
+            using Pkg
+            Pkg.instantiate()'
+      - run: julia --project=docs docs/make.jl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+    # don't run ci twice on my own PRs
+    if: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
