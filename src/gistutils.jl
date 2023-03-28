@@ -32,8 +32,8 @@ function with_new_gist(f; private::Bool = true)
     if m === nothing
         error("Unrecognized output from `gh cli`: ", repo_http)
     end
-    slug = m[1]
-    git_url = "git@gist.github.com:$slug"
+    slug = split(m[1], '/')[2] # remove username
+    git_url = "git@gist.github.com:$slug.git"
 
     response = Ref{HTTP.Response}()
     @sync begin
