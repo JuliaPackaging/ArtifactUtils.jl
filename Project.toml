@@ -1,7 +1,7 @@
 name = "ArtifactUtils"
 uuid = "8b73e784-e7d8-4ea5-973d-377fed4e3bce"
 authors = ["Simeon Schaub <simeondavidschaub99@gmail.com> and contributors"]
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
