@@ -89,7 +89,7 @@ artifact_from_directory(source; follow_symlinks::Bool = false) =
     create_artifact() do artifact_dir
         cp(source, artifact_dir; force = true, follow_symlinks = follow_symlinks)
         # Manually copy the executable bit in Windows:
-        # https://github.com/simeonschaub/ArtifactUtils.jl/pull/8#discussion_r767210865
+        # https://github.com/JuliaPackaging/ArtifactUtils.jl/pull/8#discussion_r767210865
         Sys.iswindows() && copy_mode(source, artifact_dir)
     end
 
