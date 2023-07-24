@@ -144,3 +144,34 @@ end
         @test all(==(1), hits)
     end
 end
+
+using Documenter, gh_cli_jll
+if haskey(ENV, "GITHUB_TOKEN")
+    @testset "Doctests" begin
+        doctestfilters=[
+            r"(/home/simeon)",
+            r"\[__tmp__ \(root\-commit\)(.*)main -> main \(forced update\)"s,
+            r"sha256 = \"(.*)\"",
+            r"url = \"(.*)\"",
+        ]
+        dir = mktempdir()
+        source = joinpath(dir, "src")
+        mkdir(source)
+        makedocs(;
+            root = dir,
+            source = source,
+            sitename = "",
+            doctest = :only,
+            modules = [ArtifactUtils],
+            doctestfilters,
+        )
+        url = TOML.parsefile(joinpath(dir, "Artifacts.toml"))["hello_world"]["download"][]["url"]
+        @show url
+        gh() do cmd
+            run(`$cmd gist delete $url`)
+        end
+        rm(dir; recursive=true)
+    end
+else
+    @warn "skipping doctests because `GITHUB_TOKEN` was not specified"
+end
