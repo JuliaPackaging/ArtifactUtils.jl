@@ -3,7 +3,7 @@
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaPackaging.github.io/ArtifactUtils.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaPackaging.github.io/ArtifactUtils.jl/dev/)
 [![Build Status](https://github.com/JuliaPackaging/ArtifactUtils.jl/workflows/CI/badge.svg)](https://github.com/JuliaPackaging/ArtifactUtils.jl/actions)
-[![Coverage](https://codecov.io/gh/JuliaPackaging/ArtifactUtils.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaPackaging/ArtifactUtils.jl)
+[![Coverage](https://codecov.io/gh/JuliaPackaging/ArtifactUtils.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaPackaging/ArtifactUtils.jl)
 [![pkgeval](https://juliahub.com/docs/ArtifactUtils/pkgeval.svg)](https://juliahub.com/ui/Packages/ArtifactUtils/d8lJU)
 
 Provides the function
