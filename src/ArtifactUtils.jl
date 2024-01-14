@@ -12,7 +12,8 @@ using Base: SHA1
 using SHA
 using Downloads: download
 
-export add_artifact!, artifact_from_directory, upload_to_gist, upload_all_to_gist!
+export add_artifact!, artifact_from_directory
+export upload_to_gist, upload_all_to_gist!, upload_to_release
 
 include("utils.jl")
 include("gistutils.jl")
@@ -297,6 +298,8 @@ function print_artifact_entry(
     )
     TOML.print(io, dict; sorted = true)
 end
+
+include("upload_to_release.jl")
 
 function Base.show(io::IO, ::MIME"text/plain", gist::GistUploadResult)
     print(io, upload_to_gist, "(")
