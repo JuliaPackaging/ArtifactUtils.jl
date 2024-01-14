@@ -61,7 +61,7 @@ function upload_to_release(
         abspath(tarball),
         url,
         sha256,
-        private,
+        tag,
     )
 end
 

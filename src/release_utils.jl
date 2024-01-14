@@ -17,10 +17,12 @@ function release_from_file(filepath::AbstractString; tag::AbstractString)
     ghr() do ghr_exe
         println(
             readchomp(
-                `$ghr_exe -replace -u $(dirname(deploy_repo)) -r $(basename(deploy_repo)) $(tag) $(tempdir)`,
+                `$ghr_exe -replace -u $(dirname(deploy_repo)) -r $(basename(deploy_repo)) $(tag) $(filepath)`,
             ),
         )
     end
 
-    return deploy_repo
+    tarball_url = "https://github.com/$(deploy_repo)/releases/download/$(tag)/$(basename(filepath))"
+
+    return tarball_url
 end
