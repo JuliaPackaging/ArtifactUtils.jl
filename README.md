@@ -24,7 +24,7 @@ julia> add_artifact!(
                      "Artifacts.toml",
                      "JuliaMono",
                      "https://github.com/cormullion/juliamono/releases/download/v0.030/JuliaMono.tar.gz",
-                     force=true,
+                     force=true
                     )
 SHA1("6c460cf2eccecd24499618112adbbe7e403fa1ee")
 
