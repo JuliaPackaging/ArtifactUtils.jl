@@ -9,6 +9,21 @@ function _artifact(name, loc)
     eval(Expr(:macrocall, Symbol("@artifact_str"), LineNumberNode(1, Symbol(loc)), name))
 end
 
+expected_artifacts = Dict{String,Any}(
+        "JuliaMono" => Dict{String,Any}(
+            "git-tree-sha1" => "65279f9c8a3dd1e2cb654fdedbe8cd58889ae1bc",
+            "download" => Any[
+                Dict{String,Any}(
+                    "sha256" => "f1ab65231cda7981531398644a58fd5fde8f367b681e1b8e9c35d9b2aacfcb1c",
+                    "url" => "https://github.com/cormullion/juliamono/releases/download/v0.007/JuliaMono.tar.gz",
+                    "size" => UInt64(5752883),
+                ),
+            ],
+        ),
+    )
+expected_artifacts_nosize = deepcopy(expected_artifacts)
+delete!(expected_artifacts_nosize["JuliaMono"]["download"][1], "size")
+
 @testset "ArtifactUtils.jl" begin
     mktempdir() do tempdir
         artifact_file = joinpath(tempdir, "Artifacts.toml")
@@ -19,17 +34,7 @@ end
             force=true,
         )
         artifacts = TOML.parsefile(artifact_file)
-        @test artifacts == Dict{String,Any}(
-            "JuliaMono" => Dict{String,Any}(
-                "git-tree-sha1" => "65279f9c8a3dd1e2cb654fdedbe8cd58889ae1bc",
-                "download" => Any[
-                    Dict{String,Any}(
-                        "sha256" => "f1ab65231cda7981531398644a58fd5fde8f367b681e1b8e9c35d9b2aacfcb1c",
-                        "url" => "https://github.com/cormullion/juliamono/releases/download/v0.007/JuliaMono.tar.gz",
-                    ),
-                ],
-            ),
-        )
+        @test artifacts == expected_artifacts || artifacts == expected_artifacts_nosize
         ensure_artifact_installed("JuliaMono", artifact_file)
         @test ispath(_artifact("JuliaMono", tempdir))
         hash = ArtifactUtils.sha256sum(joinpath(_artifact("JuliaMono", tempdir), "JuliaMono-Regular.ttf"))
@@ -45,23 +50,14 @@ end
         "<localpath>",
         "https://github.com/cormullion/juliamono/releases/download/v0.007/JuliaMono.tar.gz",
         "f1ab65231cda7981531398644a58fd5fde8f367b681e1b8e9c35d9b2aacfcb1c",
+        UInt64(5752883),
         false,
     )
     mktempdir() do tempdir
         artifact_file = joinpath(tempdir, "Artifacts.toml")
         add_artifact!(artifact_file, "JuliaMono", gist)
         artifacts = TOML.parsefile(artifact_file)
-        @test artifacts == Dict{String,Any}(
-            "JuliaMono" => Dict{String,Any}(
-                "git-tree-sha1" => "65279f9c8a3dd1e2cb654fdedbe8cd58889ae1bc",
-                "download" => Any[
-                    Dict{String,Any}(
-                        "sha256" => "f1ab65231cda7981531398644a58fd5fde8f367b681e1b8e9c35d9b2aacfcb1c",
-                        "url" => "https://github.com/cormullion/juliamono/releases/download/v0.007/JuliaMono.tar.gz",
-                    ),
-                ],
-            ),
-        )
+        @test artifacts == expected_artifacts || artifacts == expected_artifacts_nosize
     end
     str = sprint(show, "text/plain", gist)
     @test occursin("upload_to_gist(", str)
