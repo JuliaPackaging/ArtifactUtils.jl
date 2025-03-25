@@ -125,7 +125,7 @@ struct GistUploadResult
     localpath::Union{String,Nothing}
     url::String
     sha256::String
-    size::UInt64
+    size::Int64
     private::Bool
 end
 

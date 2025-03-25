@@ -16,7 +16,7 @@ expected_artifacts = Dict{String,Any}(
                 Dict{String,Any}(
                     "sha256" => "f1ab65231cda7981531398644a58fd5fde8f367b681e1b8e9c35d9b2aacfcb1c",
                     "url" => "https://github.com/cormullion/juliamono/releases/download/v0.007/JuliaMono.tar.gz",
-                    "size" => UInt64(5752883),
+                    "size" => Int64(5752883),
                 ),
             ],
         ),
@@ -50,7 +50,7 @@ end
         "<localpath>",
         "https://github.com/cormullion/juliamono/releases/download/v0.007/JuliaMono.tar.gz",
         "f1ab65231cda7981531398644a58fd5fde8f367b681e1b8e9c35d9b2aacfcb1c",
-        UInt64(5752883),
+        Int64(5752883),
         false,
     )
     mktempdir() do tempdir
