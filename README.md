@@ -11,6 +11,9 @@ Provides the function
 which makes it easy for Julia projects to ship their own tarballs as
 [Artifacts](https://julialang.github.io/Pkg.jl/dev/artifacts/).
 
+> [!NOTE]  
+> Note that artifacts need to be gzip-compressed tarballs with the `.tar.gz` extension
+
 ## Example
 
 This will download the JuliaMono font from GitHub as a tarball and create a corresponding
