@@ -61,6 +61,8 @@ function add_artifact!(
 
     tarball_path = download(tarball_url)
     sha256 = sha256sum(tarball_path)
+    tarball_size = filesize(tarball_path)
+    iszero(tarball_size) && error("tarball has zero filesize")
 
     git_tree_sha1 = create_artifact() do artifact_dir
         unpack(tarball_path, artifact_dir)
@@ -73,7 +75,7 @@ function add_artifact!(
         artifacts_toml,
         name,
         git_tree_sha1;
-        download_info = [(tarball_url, sha256)],
+        download_info = [(tarball_url, sha256, tarball_size)],
         options...,
     )
 
@@ -123,6 +125,7 @@ struct GistUploadResult
     localpath::Union{String,Nothing}
     url::String
     sha256::String
+    size::Int64
     private::Bool
 end
 
@@ -169,6 +172,8 @@ function upload_to_gist(
     mkpath(dirname(tarball))
     archive_artifact(artifact_id, tarball; archive_options...)
     sha256 = sha256sum(tarball)
+    tarball_size = filesize(tarball)
+    iszero(tarball_size) && error("tarball has zero filesize")
     url = gist_from_file(tarball; private = private)
     return GistUploadResult(
         artifact_id,
@@ -176,6 +181,7 @@ function upload_to_gist(
         abspath(tarball),
         url,
         sha256,
+        tarball_size,
         private,
     )
 end
@@ -245,7 +251,9 @@ function upload_all_to_gist!(
             tarball_path = joinpath(tmpdir, up.name * extension)
             archive_artifact(up.git_tree_sha1, tarball_path)
             sha256 = sha256sum(tarball_path)
-            push!(artifacts[up.name]["download"], Dict{String,Any}("sha256" => sha256))
+            tarball_size = filesize(tarball_path)
+            iszero(tarball_size) && error("tarball has zero filesize")
+            push!(artifacts[up.name]["download"], Dict{String,Any}("sha256" => sha256, "size" => tarball_size))
         end
         @info "Uploading archive to gist"
         repo_http = with_new_gist(; private) do git_dir
@@ -277,7 +285,7 @@ function add_artifact!(
         artifacts_toml,
         name,
         gist.artifact_id;
-        download_info = [(gist.url, gist.sha256)],
+        download_info = [(gist.url, gist.sha256, gist.size)],
         options...,
     )
 end
@@ -292,7 +300,7 @@ function print_artifact_entry(
     dict = Dict(
         name => Dict(
             "git-tree-sha1" => string(gist.artifact_id),
-            "download" => [Dict("url" => gist.url, "sha256" => gist.sha256)],
+            "download" => [Dict("url" => gist.url, "sha256" => gist.sha256, "size" => gist.size)],
         ),
     )
     TOML.print(io, dict; sorted = true)
