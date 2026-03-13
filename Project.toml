@@ -1,7 +1,7 @@
 name = "ArtifactUtils"
 uuid = "8b73e784-e7d8-4ea5-973d-377fed4e3bce"
-authors = ["Simeon Schaub <simeondavidschaub99@gmail.com> and contributors"]
 version = "0.2.5"
+authors = ["Simeon Schaub <simeondavidschaub99@gmail.com> and contributors"]
 
 [deps]
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
@@ -12,7 +12,6 @@ ProgressLogging = "33c8b6b6-d38a-422a-b730-caa89a2f386c"
 SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
 gh_cli_jll = "5d31d589-30fb-542f-b82d-10325e863e38"
-ghr_jll = "07c12ed4-43bc-5495-8a2a-d5838ef8d533"
 
 [compat]
 Git = "1"

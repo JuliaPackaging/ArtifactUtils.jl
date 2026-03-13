@@ -1,5 +1,3 @@
-using ghr_jll
-
 struct ReleaseUploadResult
     artifact_id::SHA1
     filename::String
