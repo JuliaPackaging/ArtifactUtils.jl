@@ -15,7 +15,13 @@ Essentially, it just runs:
 `gh release upload \$tag \$filepath --repo \$repo --clobber`.
 Returns the url of the release.
 """
-function release_from_file(filepath::AbstractString; tag::AbstractString, repo::AbstractString=get_repo_name(), title="Packaging tarballs $tag", notes="Packaging tarballs for Julia artifact system")
+function release_from_file(
+       filepath::AbstractString;
+       tag::AbstractString,
+       repo::AbstractString=get_repo_name(),
+       title=tag,
+       notes=""
+)
     @assert isfile(filepath)
     gh = gh_cli_jll.gh()
     # Create release if it doesn't exist yet

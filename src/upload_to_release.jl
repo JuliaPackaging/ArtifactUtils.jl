@@ -49,12 +49,19 @@ function upload_to_release(
     artifact_id::SHA1,
     tarball::AbstractString;
     tag::AbstractString="artifacts-latest",
+    title::AbstractString=tag,
+    notes::AbstractString="",
     archive_options...,
 )
     mkpath(dirname(tarball))
     archive_artifact(artifact_id, tarball; archive_options...)
     sha256 = sha256sum(tarball)
-    url = release_from_file(tarball; tag=tag)
+    url = release_from_file(
+        tarball;
+        tag=tag,
+        title=title,
+        notes=notes
+    )
     return ReleaseUploadResult(
         artifact_id,
         basename(tarball),
