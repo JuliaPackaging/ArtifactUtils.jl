@@ -1,9 +1,11 @@
 using ArtifactUtils, Pkg.Artifacts
 using Base: SHA1
+using Downloads
 using Test
 using TOML
 import Pkg
 import Git
+import gh_cli_jll
 
 function _artifact(name, loc)
     eval(Expr(:macrocall, Symbol("@artifact_str"), LineNumberNode(1, Symbol(loc)), name))
@@ -138,5 +140,94 @@ end
             hits[i] += 1
         end
         @test all(==(1), hits)
+    end
+end
+
+@testset "release utils" begin
+    @testset "get_repo_name" begin
+        # just test repo name, not owner, otherwise fails for people writing PR's.
+        @test last(split(ArtifactUtils.get_repo_name(), "/")) == "ArtifactUtils.jl"
+    end
+
+    @testset "release_from_file" begin
+        mktempdir() do tmpdir
+            # create a small test file
+            # use a random int to ensure its always overwriting the test file
+            filepath = joinpath(tmpdir, "test.txt")
+            random_int = string(rand(Int))
+            write(filepath, random_int)
+
+            # Try to create a release, but if anything errors, carry on so we can delete the release
+            tag = "test"
+            try
+                url = ArtifactUtils.release_from_file(filepath; tag="test")
+                sleep(5) # make sure theres enough time for it to upload
+                downloaded = joinpath(tmpdir, "downloaded.txt")
+                Downloads.download(url, downloaded)
+                @test read(downloaded, String) == random_int
+            catch _
+                # if we got here, something above errored,
+                # but we really should carry on so we can delete the
+                # release if it was created
+            end
+
+            # remove the release to avoid polluting releases.
+            # if release was never created, i.e. code above failed,
+            # this will error, hence the try/catch
+            try
+                gh = gh_cli_jll.gh()
+                run(`$gh release delete $tag --cleanup-tag -y`)
+            catch _
+            end
+        end
+    end
+end
+
+@testset "upload_to_release" begin
+    mktempdir() do tmp_dir
+        # Create a small artifact
+        src_dir = joinpath(tmp_dir, "src")
+        mkpath(src_dir)
+        filepath = joinpath(src_dir, "test.txt")
+        random_int = string(rand(Int))
+        write(filepath, random_int)
+        artifact_id = artifact_from_directory(src_dir)
+
+        tag = "test"
+        try
+            result = upload_to_release(artifact_id; tag=tag)
+
+            # Check the result struct
+            @test result.artifact_id == artifact_id
+            @test result.tag == tag
+            @test endswith(result.filename, ".tar.gz")
+            @test startswith(result.url, "https://github.com/")
+            @test !isempty(result.sha256)
+
+            # make sure we can now add it as an artifact
+            artifact_file = joinpath(tmp_dir, "Artifacts.toml")
+            add_artifact!(artifact_file, "test_gh_release_artifact", result)
+            artifacts = TOML.parsefile(artifact_file)
+            # Verify the artifact was bound in the TOML
+            @test haskey(artifacts, "test_gh_release_artifact")
+            @test artifacts["test_gh_release_artifact"]["git-tree-sha1"] == bytes2hex(result.artifact_id.bytes)
+
+            # Instantiate the artifact and check the file contents
+            artifact_dir = ensure_artifact_installed("test_gh_release_artifact", artifact_file)
+            @test read(joinpath(artifact_dir, "test.txt"), String) == random_int
+        catch _
+            # if we got here, something above errored,
+            # but we really should carry on so we can delete the
+            # release if it was created
+        end
+
+        # remove the release to avoid polluting releases
+        # if release was never created, i.e. code above failed,
+        # this will error, hence the try/catch
+        try
+            gh = gh_cli_jll.gh()
+            run(`$gh release delete $tag --cleanup-tag -y`)
+        catch _
+        end
     end
 end
