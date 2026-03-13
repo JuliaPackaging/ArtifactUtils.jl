@@ -104,8 +104,8 @@ julia> add_artifact!("Artifacts.toml", "hello_world", gist)
 ### Archive a directory and upload it as release
 
 You can also create an artifact from a directory using `artifact_from_directory` and
-then upload it as a tagged release with `upload_to_release`.  Note that `upload_to_release`
-requires login using your `GITHUB_TOKEN`, which needs to be available from the environment.
+then upload it as a tagged release with `upload_to_release`. Note that `upload_to_release`
+also requires login with `gh`. Since this does use `gh`, if can be used as github workflow.
 
 ```julia
 julia> using ArtifactUtils
@@ -118,12 +118,13 @@ julia> artifact_id = artifact_from_directory(tempdir)
 SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3")
 
 julia> release = upload_to_release(artifact_id)
-@Info (ArtifactUtils#release_from_file#46): Uploading tarballs to pat-alt/ArtifactUtils.jl tag `artifacts-latest`                                                                          
-  │                                                                                                                                                                                        
-  ╰──────────────────────────────────────────────── 
-                       Sun, 14 Jan 2024 17:05:02 
---> Uploading: 538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz
-ArtifactUtils.ReleaseUploadResult(SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3"), "538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "/var/folders/ct/w1pc0ggd44907l8fkl8m5pdslbh6sh/T/jl_I38b3Z/538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "https://github.com/pat-alt/ArtifactUtils.jl/releases/download/artifacts-latest/538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "d81c7e810cd9d3588a7aa0aaffb9fbc8c4db6ad2bc27f8ddb8f5382b44a5a4f9", "artifacts-latest")
+[ Info: Creating release with tag artifacts-latest
+https://github.com/JuliaPackaging/ArtifactUtils.jl/releases/tag/artifacts-latest
+┌ Info: Uploading files to JuliaPackaging/ArtifactUtils.jl with tag artifacts-latest
+└   filepath = "/tmp/jl_ccmwEn/538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz"
+Successfully uploaded 1 asset to artifacts-latest
+ArtifactUtils.ReleaseUploadResult(SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3"), "538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "/tmp/jl_ccmwEn/538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "https://github.com/JuliaPackaging/ArtifactUtils.jl/releases/download/artifacts-latest/538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "62c63d3d365e40cbb163731b53c992b1c048a94914bf624e4f2081e774ad43c4", "artifacts-latest")
+
 ```
 
 Simply call the `add_artifact!` with the `release` result object.
