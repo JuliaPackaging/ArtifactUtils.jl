@@ -3,7 +3,6 @@ using Base: SHA1
 using Downloads
 using Test
 using TOML
-using SHA
 import Pkg
 import Git
 
