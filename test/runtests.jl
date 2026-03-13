@@ -1,5 +1,6 @@
 using ArtifactUtils, Pkg.Artifacts
 using Base: SHA1
+using Downloads
 using Test
 using TOML
 import Pkg
@@ -139,4 +140,26 @@ end
         end
         @test all(==(1), hits)
     end
+end
+
+@testset "release utils" begin
+    @testset "get_repo_name" begin
+        # just test repo name, not owner, otherwise fails for people writing PR's.
+        @test last(split(ArtifactUtils.get_repo_name(), "/")) == "ArtifactUtils.jl"
+    end
+
+    @testset "release_from_file" begin
+        mktempdir() do tmpdir
+            # create a small test file
+            # use a random int to ensure its always overwriting the test file
+            filepath = joinpath(tmpdir, "test.txt")
+            random_int = string(rand(Int))
+            write(filepath, random_int)
+            url = ArtifactUtils.release_from_file(filepath; tag="v0.0.1-test")
+            downloaded = joinpath(tmpdir, "downloaded.txt")
+            Downloads.download(url, downloaded)
+            @test read(downloaded, String) == random_int
+        end
+    end
+
 end

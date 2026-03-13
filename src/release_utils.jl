@@ -1,28 +1,31 @@
-function release_from_file(filepath::AbstractString; tag::AbstractString)
-    
+"""
+Uses `gh` to get the name of this repo, in the form owner/name.
+Note that this will return the owner/name set in `gh repo set-default`.
+"""
+function get_repo_name()
+    gh = gh_cli_jll.gh()
+    repo_name = readchomp(`gh repo view --json nameWithOwner -q .nameWithOwner`)
+    return repo_name
+end
+
+"""
+Creates a github release and uploads files.
+Essentially, it just runs:
+`gh release create \$tag --repo \$repo`,
+`gh release upload \$tag \$filepath --repo \$repo --clobber`.
+Returns the url of the release.
+"""
+function release_from_file(filepath::AbstractString; tag::AbstractString, repo::AbstractString=get_repo_name(), title="Packaging tarballs $tag", notes="Packaging tarballs for Julia artifact system")
     @assert isfile(filepath)
-
-    # Get the repo name from the git remote url
-    if !haskey(ENV, "GITHUB_TOKEN")
-        @warn "For automatic github deployment, need GITHUB_TOKEN. Not found in ENV, attemptimg global git config."
+    gh = gh_cli_jll.gh()
+    # Create release if it doesn't exist yet
+    @info "Creating release with tag $tag"
+    try
+        run(`$gh release create $tag --repo $repo  --title $title --notes $notes`)
+    catch
+        @info "Release $tag already exists, continuing..."
     end
-
-    origin_url = strip(chomp(read(`git config --get remote.origin.url`, String)))
-    deploy_repo = "$(basename(dirname(origin_url)))/$(basename(origin_url))"
-    deploy_repo = replace(deploy_repo, ".git" => "")
-
-    # Upload tarballs to a special github release
-    @info("Uploading tarballs to $(deploy_repo) tag `$(tag)`")
-
-    ghr() do ghr_exe
-        println(
-            readchomp(
-                `$ghr_exe -replace -u $(dirname(deploy_repo)) -r $(basename(deploy_repo)) $(tag) $(filepath)`,
-            ),
-        )
-    end
-
-    tarball_url = "https://github.com/$(deploy_repo)/releases/download/$(tag)/$(basename(filepath))"
-
-    return tarball_url
+    @info("Uploading files to $repo with tag $tag", filepath)
+    run(`$gh release upload $tag $filepath --repo $repo --clobber`)
+    return "https://github.com/$(repo)/releases/download/$(tag)/$(basename(filepath))"
 end
