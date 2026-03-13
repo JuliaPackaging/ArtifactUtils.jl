@@ -105,7 +105,7 @@ julia> add_artifact!("Artifacts.toml", "hello_world", gist)
 
 You can also create an artifact from a directory using `artifact_from_directory` and
 then upload it as a tagged release with `upload_to_release`. Note that `upload_to_release`
-also requires login with `gh`. Since this does use `gh`, if can be used as github workflow.
+also requires login with `gh`.
 
 ```julia
 julia> using ArtifactUtils
