@@ -20,6 +20,8 @@ jobs:
         arch:
           - 'default'
       fail-fast: false
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
