@@ -165,10 +165,12 @@ end
                 downloaded = joinpath(tmpdir, "downloaded.txt")
                 Downloads.download(url, downloaded)
                 @test read(downloaded, String) == random_int
-            catch _
+            catch err
                 # if we got here, something above errored,
                 # but we really should carry on so we can delete the
                 # release if it was created
+                showerror(stderr, err)
+                @test false
             end
 
             # remove the release to avoid polluting releases.
@@ -177,7 +179,8 @@ end
             try
                 gh = gh_cli_jll.gh()
                 run(`$gh release delete $tag --cleanup-tag -y`)
-            catch _
+            catch err
+                showerror(stderr, err)
             end
         end
     end
@@ -215,10 +218,12 @@ end
             # Instantiate the artifact and check the file contents
             artifact_dir = ensure_artifact_installed("test_gh_release_artifact", artifact_file)
             @test read(joinpath(artifact_dir, "test.txt"), String) == random_int
-        catch _
+        catch err
             # if we got here, something above errored,
             # but we really should carry on so we can delete the
             # release if it was created
+            showerror(stderr, err)
+            @test false
         end
 
         # remove the release to avoid polluting releases
@@ -227,7 +232,8 @@ end
         try
             gh = gh_cli_jll.gh()
             run(`$gh release delete $tag --cleanup-tag -y`)
-        catch _
+        catch err
+            showerror(stderr, err)
         end
     end
 end
