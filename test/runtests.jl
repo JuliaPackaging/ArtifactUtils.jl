@@ -160,7 +160,7 @@ end
             # Try to create a release, but if anything errors, carry on so we can delete the release
             tag = "test"
             try
-                url = ArtifactUtils.release_from_file(filepath; tag="test")
+                url = ArtifactUtils.release_from_file(filepath; tag=tag)
                 sleep(5) # make sure theres enough time for it to upload
                 downloaded = joinpath(tmpdir, "downloaded.txt")
                 Downloads.download(url, downloaded)
