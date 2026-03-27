@@ -176,8 +176,10 @@ end
 
 @testset "release utils" begin
     @testset "get_repo_name" begin
-        # just test repo name, not owner, otherwise fails for people writing PR's.
-        @test last(split(ArtifactUtils.get_repo_name(), "/")) == "ArtifactUtils.jl"
+        mktempdir() do tmpdir
+            gh = fake_gh(tmpdir)
+            @test ArtifactUtils.get_repo_name(; gh=gh) == "test-owner/ArtifactUtils.jl"
+        end
     end
 
     @testset "release_from_file" begin
