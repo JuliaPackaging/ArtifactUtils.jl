@@ -5,7 +5,13 @@ using Test
 using TOML
 import Pkg
 import Git
-import gh_cli_jll
+
+# returns a run command that can be interpolated into
+# julia run commands, and acts like a fake, local-only gh
+fake_gh(release_dir) = addenv(
+    `$(Base.julia_cmd()) $(joinpath(@__DIR__, "fake_gh.jl"))`,
+    "FAKE_GH_RELEASE_DIR" => release_dir,
+)
 
 function _artifact(name, loc)
     eval(Expr(:macrocall, Symbol("@artifact_str"), LineNumberNode(1, Symbol(loc)), name))
@@ -140,6 +146,31 @@ end
             hits[i] += 1
         end
         @test all(==(1), hits)
+    end
+end
+
+@testset "fake_gh" begin
+    mktempdir() do release_dir
+        gh = fake_gh(release_dir)
+
+        @testset "repo view" begin
+            @test readchomp(`$gh repo view --json nameWithOwner -q .nameWithOwner`) == "test-owner/ArtifactUtils.jl"
+        end
+
+        @testset "release create" begin
+            run(`$gh release create v1.0`)
+            @test isdir(joinpath(release_dir, "v1.0"))
+        end
+
+        @testset "release upload" begin
+            src = joinpath(release_dir, "artifact.tar.gz")
+            write(src, "test content")
+            run(`$gh release upload v1.0 $src --repo owner/repo --clobber`)
+            @test read(joinpath(release_dir, "v1.0", "artifact.tar.gz"), String) == "test content"
+            # we never created v1.1, should error
+            @test_throws ProcessFailedException run(`$gh release upload v1.1 $src --repo owner/repo --clobber`)
+
+        end
     end
 end
 
