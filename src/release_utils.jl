@@ -2,10 +2,8 @@
 Uses `gh` to get the name of this repo, in the form owner/name.
 Note that this will return the owner/name set in `gh repo set-default`.
 """
-function get_repo_name()
-    gh = gh_cli_jll.gh()
-    repo_name = readchomp(`gh repo view --json nameWithOwner -q .nameWithOwner`)
-    return repo_name
+function get_repo_name(; gh=gh_cli_jll.gh())
+    readchomp(`$gh repo view --json nameWithOwner -q .nameWithOwner`)
 end
 
 """
@@ -16,14 +14,14 @@ Essentially, it just runs:
 Returns the url of the release.
 """
 function release_from_file(
-       filepath::AbstractString;
-       tag::AbstractString,
-       repo::AbstractString=get_repo_name(),
-       title=tag,
-       notes=""
+    filepath::AbstractString;
+    tag::AbstractString,
+    gh=gh_cli_jll.gh(),
+    repo::AbstractString=get_repo_name(; gh),
+    title=tag,
+    notes="",
 )
     @assert isfile(filepath)
-    gh = gh_cli_jll.gh()
     # Create release if it doesn't exist yet
     @info "Creating release with tag $tag"
     try

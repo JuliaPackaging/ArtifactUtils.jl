@@ -49,6 +49,7 @@ function upload_to_release(
     tag::AbstractString="artifacts-latest",
     title::AbstractString=tag,
     notes::AbstractString="",
+    gh=gh_cli_jll.gh(),
     archive_options...,
 )
     mkpath(dirname(tarball))
@@ -58,7 +59,8 @@ function upload_to_release(
         tarball;
         tag=tag,
         title=title,
-        notes=notes
+        notes=notes,
+        gh=gh,
     )
     return ReleaseUploadResult(
         artifact_id,
@@ -74,6 +76,7 @@ function upload_to_release(
     artifact_id::SHA1;
     name::Union{AbstractString,Nothing}=nothing,
     extension::Union{AbstractString,Nothing}=nothing,
+    gh=gh_cli_jll.gh(),
     options...,
 )
     if name !== nothing && extension !== nothing
@@ -92,7 +95,7 @@ function upload_to_release(
     end
 
     return mktempdir() do dir
-        upload_to_release(artifact_id, joinpath(dir, tarball); options...)
+        upload_to_release(artifact_id, joinpath(dir, tarball); gh=gh, options...)
     end
 end
 
