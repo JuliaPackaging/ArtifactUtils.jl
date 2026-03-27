@@ -1,9 +1,17 @@
 using ArtifactUtils, Pkg.Artifacts
 using Base: SHA1
+using Downloads
 using Test
 using TOML
 import Pkg
 import Git
+
+# returns a run command that can be interpolated into
+# julia run commands, and acts like a fake, local-only gh
+fake_gh(release_dir) = addenv(
+    `$(Base.julia_cmd()) $(joinpath(@__DIR__, "fake_gh.jl"))`,
+    "FAKE_GH_RELEASE_DIR" => release_dir,
+)
 
 function _artifact(name, loc)
     eval(Expr(:macrocall, Symbol("@artifact_str"), LineNumberNode(1, Symbol(loc)), name))
@@ -138,5 +146,98 @@ end
             hits[i] += 1
         end
         @test all(==(1), hits)
+    end
+end
+
+@testset "fake_gh" begin
+    mktempdir() do release_dir
+        gh = fake_gh(release_dir)
+
+        @testset "repo view" begin
+            @test readchomp(`$gh repo view --json nameWithOwner -q .nameWithOwner`) == "test-owner/ArtifactUtils.jl"
+        end
+
+        @testset "release create" begin
+            run(`$gh release create v1.0`)
+            @test isdir(joinpath(release_dir, "v1.0"))
+        end
+
+        @testset "release upload" begin
+            src = joinpath(release_dir, "artifact.tar.gz")
+            write(src, "test content")
+            run(`$gh release upload v1.0 $src --repo owner/repo --clobber`)
+            @test read(joinpath(release_dir, "v1.0", "artifact.tar.gz"), String) == "test content"
+            # we never created v1.1, should error
+            @test_throws ProcessFailedException run(`$gh release upload v1.1 $src --repo owner/repo --clobber`)
+
+        end
+    end
+end
+
+@testset "release utils" begin
+    @testset "get_repo_name" begin
+        mktempdir() do tmpdir
+            gh = fake_gh(tmpdir)
+            @test ArtifactUtils.get_repo_name(; gh=gh) == "test-owner/ArtifactUtils.jl"
+        end
+    end
+
+    @testset "release_from_file" begin
+        mktempdir() do tmpdir
+            # create a small test file
+            # use a random int to ensure its always overwriting the test file
+            filepath = joinpath(tmpdir, "test.txt")
+            random_int = string(rand(Int))
+            write(filepath, random_int)
+
+            release_dir = joinpath(tmpdir, "releases")
+            mkpath(release_dir)
+            gh = fake_gh(release_dir)
+
+            tag = "test"
+            url = ArtifactUtils.release_from_file(filepath; tag=tag, gh=gh)
+            # verify the file was "uploaded" to the fake release dir
+            @test read(joinpath(release_dir, tag, basename(filepath)), String) == random_int
+            # verify the returned URL has the expected GitHub format
+            @test url == "https://github.com/test-owner/ArtifactUtils.jl/releases/download/$tag/$(basename(filepath))"
+
+        end
+    end
+end
+
+@testset "upload_to_release" begin
+    mktempdir() do tmp_dir
+        # Create a small artifact
+        src_dir = joinpath(tmp_dir, "src")
+        mkpath(src_dir)
+        filepath = joinpath(src_dir, "test.txt")
+        random_int = string(rand(Int))
+        write(filepath, random_int)
+        artifact_id = artifact_from_directory(src_dir)
+
+        release_dir = joinpath(tmp_dir, "releases")
+        mkpath(release_dir)
+        gh = fake_gh(release_dir)
+
+        tag = "test"
+        result = upload_to_release(artifact_id; tag=tag, gh=gh)
+
+        # Check the result struct
+        @test result.artifact_id == artifact_id
+        @test result.tag == tag
+        @test endswith(result.filename, ".tar.gz")
+        @test startswith(result.url, "https://github.com/")
+        @test !isempty(result.sha256)
+
+        # Verify the tarball was "uploaded" to the fake release dir
+        @test isfile(joinpath(release_dir, tag, result.filename))
+
+        # make sure we can now add it as an artifact
+        artifact_file = joinpath(tmp_dir, "Artifacts.toml")
+        add_artifact!(artifact_file, "test_gh_release_artifact", result)
+        artifacts = TOML.parsefile(artifact_file)
+        # Verify the artifact was bound in the TOML
+        @test haskey(artifacts, "test_gh_release_artifact")
+        @test artifacts["test_gh_release_artifact"]["git-tree-sha1"] == bytes2hex(result.artifact_id.bytes)
     end
 end

@@ -100,3 +100,35 @@ file.  You can also call `add_artifact!` with the `gist` result object.
 ```julia
 julia> add_artifact!("Artifacts.toml", "hello_world", gist)
 ```
+
+### Archive a directory and upload it as release
+
+You can also create an artifact from a directory using `artifact_from_directory` and
+then upload it as a tagged release with `upload_to_release`. Note that `upload_to_release`
+also requires login with `gh`.
+
+```julia
+julia> using ArtifactUtils
+
+julia> tempdir = mktempdir();
+
+julia> write(joinpath(tempdir, "file"), "hello");
+
+julia> artifact_id = artifact_from_directory(tempdir)
+SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3")
+
+julia> release = upload_to_release(artifact_id)
+[ Info: Creating release with tag artifacts-latest
+https://github.com/JuliaPackaging/ArtifactUtils.jl/releases/tag/artifacts-latest
+┌ Info: Uploading files to JuliaPackaging/ArtifactUtils.jl with tag artifacts-latest
+└   filepath = "/tmp/jl_ccmwEn/538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz"
+Successfully uploaded 1 asset to artifacts-latest
+ArtifactUtils.ReleaseUploadResult(SHA1("538e83d637ab07ada6d841aa2454e0d5af4e52b3"), "538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "/tmp/jl_ccmwEn/538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "https://github.com/JuliaPackaging/ArtifactUtils.jl/releases/download/artifacts-latest/538e83d637ab07ada6d841aa2454e0d5af4e52b3.tar.gz", "62c63d3d365e40cbb163731b53c992b1c048a94914bf624e4f2081e774ad43c4", "artifacts-latest")
+
+```
+
+Simply call the `add_artifact!` with the `release` result object.
+
+```julia
+julia> add_artifact!("Artifacts.toml", "hello_world", release)
+```
