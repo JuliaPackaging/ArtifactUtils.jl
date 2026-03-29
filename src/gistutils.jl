@@ -3,11 +3,11 @@
 
 Create a new gist from file at `filepath`. Return the "raw" HTTPS URL of the file.
 """
-function gist_from_file(filepath::AbstractString; private::Bool = true)
+function gist_from_file(filepath::AbstractString; private::Bool = true, ssh::Bool = true)
     @assert isfile(filepath)
     # Using `with_new_gist` utility defined below instead of simply calling `gh gist create
     # $filepath`. This seems to be required when the file at `filepath` is not a text file.
-    repo_http = with_new_gist(; private = private) do git_dir
+    repo_http = with_new_gist(; private = private, ssh = ssh) do git_dir
         cp(filepath, joinpath(git_dir, basename(filepath)))
     end
     return rstrip(repo_http, '/') * "/raw/" * basename(filepath)
@@ -20,7 +20,7 @@ Create a new gist, check it out as a local git repository at a temporary directo
 `git_dir`, call `f(git_dir)`, and then push it to remote.  Return the canonical gist HTTPS
 URL.
 """
-function with_new_gist(f; private::Bool = true)
+function with_new_gist(f; private::Bool = true, ssh::Bool = true)
     cmd = gh_cli_jll.gh()
     cmd = `$cmd gist create`
     if !private
@@ -28,12 +28,16 @@ function with_new_gist(f; private::Bool = true)
     end
     repo_http = chomp(String(communicate(cmd, "dummy")))
 
-    m = match(r"https://gist.github.com/(.*)", repo_http)
-    if m === nothing
-        error("Unrecognized output from `gh cli`: ", repo_http)
+    if ssh
+        m = match(r"https://gist.github.com/(.*)", repo_http)
+        if m === nothing
+            error("Unrecognized output from `gh cli`: ", repo_http)
+        end
+        slug = split(m[1], '/')[2] # remove username
+        git_url = "git@gist.github.com:$slug.git"
+    else
+        git_url = repo_http * ".git"
     end
-    slug = split(m[1], '/')[2] # remove username
-    git_url = "git@gist.github.com:$slug.git"
 
     response = Ref{HTTP.Response}()
     @sync begin

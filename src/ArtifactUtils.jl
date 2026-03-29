@@ -156,6 +156,8 @@ add it to `"Artifact.toml"` with the name `"name"`.
 
 ## Keyword Arguments
 - `private`: if `true`, upload the archive to a private gist
+- `ssh`: if `true`, use SSH URL for git operations. This requires the user to have SSH keys
+  set up with GitHub.
 - `name`: name of the archive file, including file extension
 - `extension`: file extension of the tarball. It can be used for specifying the compression
   method.
@@ -167,6 +169,7 @@ function upload_to_gist(
     artifact_id::SHA1,
     tarball::AbstractString;
     private::Bool = true,
+    ssh::Bool = true,
     archive_options...,
 )
     mkpath(dirname(tarball))
@@ -174,7 +177,7 @@ function upload_to_gist(
     sha256 = sha256sum(tarball)
     tarball_size = filesize(tarball)
     iszero(tarball_size) && error("tarball has zero filesize")
-    url = gist_from_file(tarball; private = private)
+    url = gist_from_file(tarball; private = private, ssh = ssh)
     return GistUploadResult(
         artifact_id,
         basename(tarball),
