@@ -65,6 +65,32 @@ end
     @test occursin("url =", str)
 end
 
+@testset "upload_to_gist" begin
+    if haskey(ENV, "GIST_TESTING_TOKEN")
+        run(`git config --global user.email "test@example.com"`)
+        run(`git config --global user.name "tester"`)
+        withenv("GH_TOKEN" => ENV["GIST_TESTING_TOKEN"]) do
+            mktempdir() do tempdir
+                file = joinpath(tempdir, "hello.txt")
+                write(file, "Hello, world.\n")
+                artifact_id = artifact_from_directory(tempdir)
+                gist = upload_to_gist(artifact_id)
+
+                @test gist.id == artifact_id
+                @test occursin("gist.github.com", gist.url)
+
+                artifact_file = joinpath(tempdir, "Artifacts.toml")
+                add_artifact!(artifact_file, "hello", gist)
+                artifacts = TOML.parsefile(artifact_file)
+                @test haskey(artifacts, "hello")
+                @test artifacts["hello"]["git-tree-sha1"] == string(artifact_id)
+            end
+        end
+    else
+        @info "Skipping `upload_to_gist` tests since `GIST_TESTING_TOKEN` is not set"
+    end
+end
+
 @testset "artifact_from_directory" begin
     mktempdir() do tempdir
         file = joinpath(tempdir, "hello.txt")
