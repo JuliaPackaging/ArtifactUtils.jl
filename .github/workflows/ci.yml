@@ -26,6 +26,11 @@ jobs:
         run: |
           git config --global user.name "Tester"
           git config --global user.email "test@example.com"
+          if [ -n "$GIST_TESTING_TOKEN" ]; then
+            git config --global url."https://$GIST_TESTING_TOKEN@gist.github.com/".insteadOf "git@gist.github.com:"
+          fi
+        env:
+          GIST_TESTING_TOKEN: ${{ secrets.GIST_TESTING_TOKEN }}
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
