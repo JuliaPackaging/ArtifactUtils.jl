@@ -67,14 +67,12 @@ end
 
 @testset "upload_to_gist" begin
     if haskey(ENV, "GIST_TESTING_TOKEN")
-        run(`git config --global user.email "test@example.com"`)
-        run(`git config --global user.name "tester"`)
         withenv("GH_TOKEN" => ENV["GIST_TESTING_TOKEN"]) do
             mktempdir() do tempdir
                 file = joinpath(tempdir, "hello.txt")
                 write(file, "Hello, world.\n")
                 artifact_id = artifact_from_directory(tempdir)
-                gist = upload_to_gist(artifact_id)
+                gist = upload_to_gist(artifact_id; ssh = false)
 
                 @test gist.id == artifact_id
                 @test occursin("gist.github.com", gist.url)
@@ -117,10 +115,6 @@ end
     mktempdir() do git_dir
         git(args) = run(`$(Git.git()) --no-pager -C $git_dir $args`)
         git(`init`)
-
-        # Setup repository-local user name and email so that it works on CI
-        git(`config user.email "test@example.com"`)
-        git(`config user.name "tester"`)
 
         git(`checkout -b new-branch`)
         write(joinpath(git_dir, "file-1"), "content")
