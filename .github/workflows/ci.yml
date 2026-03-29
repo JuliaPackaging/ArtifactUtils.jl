@@ -23,11 +23,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure Git
+        shell: bash
         run: |
           git config --global user.name "Tester"
           git config --global user.email "test@example.com"
           if [ -n "$GIST_TESTING_TOKEN" ]; then
-            git config --global url."https://$GIST_TESTING_TOKEN@gist.github.com/".insteadOf "git@gist.github.com:"
+            git config --global credential.https://gist.github.com.username $GIST_TESTING_TOKEN
           fi
         env:
           GIST_TESTING_TOKEN: ${{ secrets.GIST_TESTING_TOKEN }}
